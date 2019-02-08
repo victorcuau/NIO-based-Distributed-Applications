@@ -132,8 +132,8 @@ public class NioServer {
 		inBuffer.rewind();
 		inBuffer.get(data,0,data.length);
 		
-		String msg = new String(data,Charset.forName("UTF-8"));
-		System.out.println("NioServer received: " + msg);
+		//String msg = new String(data,Charset.forName("UTF-8"));
+		//System.out.println("NioServer received: " + msg);
 
 		// echo back the same message to the client
 		send(sc, data, 0, data.length);

@@ -145,8 +145,9 @@ public class NioClient {
 		// Let's print the message we received, assuming it is a string
 		// in UTF-8 encoding, since it is the format of our first message
 		// we sent to the server.
-		String msg = new String(data, Charset.forName("UTF-8"));
-		System.out.println("NioClient received msg["+nloops+"]: " + msg);
+		//String msg = new String(data, Charset.forName("UTF-8"));
+		//System.out.println("NioClient received msg["+nloops+"]: " + msg);
+		System.out.println("NioClient received msg["+nloops+"] with " + data.length + " bytes");
 
 		nloops++;
 		if (nloops < 100) {
@@ -201,6 +202,11 @@ public class NioClient {
 				serverAddress = args[++i];
 			}
 		}
+		
+		for (int i=0 ; i<4 ; i++) { // Ca plante à partir de 2^4 soit 224 octets (128+96)
+			msg = msg+msg;
+		}
+		
 		byte[] bytes = msg.getBytes(Charset.forName("UTF-8"));
 		NioClient nc;
 		nc = new NioClient(serverAddress, serverPort, bytes);
