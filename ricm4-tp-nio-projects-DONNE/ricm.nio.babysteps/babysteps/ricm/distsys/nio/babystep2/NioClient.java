@@ -35,6 +35,10 @@ public class NioClient {
 	byte[] first;
 	byte[] digest;
 	int nloops;
+	
+	//WRITER & READER
+	Reader reader;
+	Writer writer;
 
 	/**
 	 * NIO client initialization
@@ -63,6 +67,10 @@ public class NioClient {
 		InetAddress addr;
 		addr = InetAddress.getByName(serverName);
 		sc.connect(new InetSocketAddress(addr, port));
+		
+		// WRITER & READER
+		writer = new Writer(sc, scKey);
+		reader = new Reader(sc, scKey, writer);
 	}
 
 	/**
@@ -117,7 +125,9 @@ public class NioClient {
 
 		// when connected, send a message to the server
 		digest = md5(first);
-		send(first, 0, first.length);
+		
+		//send(first, 0, first.length);
+		writer.sendMsg(digest);
 	}
 
 	/**
@@ -128,32 +138,34 @@ public class NioClient {
 	private void handleRead(SelectionKey key) throws IOException {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
-
-		// Let's read the message
-		 inBuffer = ByteBuffer.allocate(128);
-		sc.read(inBuffer);
 		
-		byte[] data = new byte[inBuffer.position()];
-		inBuffer.rewind();
-		inBuffer.get(data);
+		reader.handleRead();
 
-		// Let's make sure we read the message we sent to the server
-		byte[] md5 = md5(data);
-		if (!md5check(digest, md5)) 
-			System.out.println("Checksum Error!");
-		
-		// Let's print the message we received, assuming it is a string
-		// in UTF-8 encoding, since it is the format of our first message
-		// we sent to the server.
-		//String msg = new String(data, Charset.forName("UTF-8"));
-		//System.out.println("NioClient received msg["+nloops+"]: " + msg);
-		System.out.println("NioClient received msg["+nloops+"] with " + data.length + " bytes");
-
-		nloops++;
-		if (nloops < 100) {
-			// send back the received message
-			send(data, 0, data.length);
-		}
+//		// Let's read the message
+//		 inBuffer = ByteBuffer.allocate(128);
+//		sc.read(inBuffer);
+//		
+//		byte[] data = new byte[inBuffer.position()];
+//		inBuffer.rewind();
+//		inBuffer.get(data);
+//
+//		// Let's make sure we read the message we sent to the server
+//		byte[] md5 = md5(data);
+//		if (!md5check(digest, md5)) 
+//			System.out.println("Checksum Error!");
+//		
+//		// Let's print the message we received, assuming it is a string
+//		// in UTF-8 encoding, since it is the format of our first message
+//		// we sent to the server.
+//		//String msg = new String(data, Charset.forName("UTF-8"));
+//		//System.out.println("NioClient received msg["+nloops+"]: " + msg);
+//		System.out.println("NioClient received msg["+nloops+"] with " + data.length + " bytes");
+//
+//		nloops++;
+//		if (nloops < 100) {
+//			// send back the received message
+//			send(data, 0, data.length);
+//		}
 	}
 
 	/**
@@ -164,25 +176,28 @@ public class NioClient {
 	private void handleWrite(SelectionKey key) throws IOException {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
-		// write the output buffer to the socket channel
-		sc.write(outBuffer);
-		// remove the write interest
-		key.interestOps(SelectionKey.OP_READ);
-	}
-
-	/**
-	 * Send the given data
-	 * 
-	 * @param data: the byte array that should be sent
-	 */
-	public void send(byte[] data, int offset, int count) {
-		// this is not optimized at all, we should try to reuse the same ByteBuffer
-		outBuffer = ByteBuffer.wrap(data, offset, count);
-
-		// register a write interests to know when there is room to write
-		// in the socket channel.
-		SelectionKey key = sc.keyFor(selector);
-		key.interestOps(SelectionKey.OP_WRITE);
+		
+		writer.handleWrite();
+		
+//		// write the output buffer to the socket channel
+//		sc.write(outBuffer);
+//		// remove the write interest
+//		key.interestOps(SelectionKey.OP_READ);
+//	}
+//
+//	/**
+//	 * Send the given data
+//	 * 
+//	 * @param data: the byte array that should be sent
+//	 */
+//	public void send(byte[] data, int offset, int count) {
+//		// this is not optimized at all, we should try to reuse the same ByteBuffer
+//		outBuffer = ByteBuffer.wrap(data, offset, count);
+//
+//		// register a write interests to know when there is room to write
+//		// in the socket channel.
+//		SelectionKey key = sc.keyFor(selector);
+//		key.interestOps(SelectionKey.OP_WRITE);
 	}
 
 	public static void main(String args[]) throws IOException {

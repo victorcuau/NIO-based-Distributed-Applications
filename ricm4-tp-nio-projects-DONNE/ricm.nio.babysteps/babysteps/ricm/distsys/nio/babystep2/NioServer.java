@@ -26,6 +26,10 @@ public class NioServer {
 
 	// Unblocking selector
 	private Selector selector;
+	
+	// WRITER & READER
+	Reader reader;
+	Writer writer;
 
 	/**
 	 * NIO server initialization
@@ -100,6 +104,10 @@ public class NioServer {
 		// register the read interest for the new socket channel
 		// in order to know when there are bytes to read
 		sc.register(this.selector, SelectionKey.OP_READ);
+		
+		// WRITER & READER
+		writer = new Writer(sc, sscKey);
+		reader = new Reader(sc, sscKey, writer);
 	}
 
 	/**
@@ -120,23 +128,25 @@ public class NioServer {
 	private void handleRead(SelectionKey key) throws IOException {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
-
-		// get the socket channel for the client who sent something
-		SocketChannel sc = (SocketChannel) key.channel();
-
-		ByteBuffer inBuffer = ByteBuffer.allocate(128);
-		sc.read(inBuffer);
-
-		// process the received data
-		byte[] data = new byte[inBuffer.position()];
-		inBuffer.rewind();
-		inBuffer.get(data,0,data.length);
 		
-		//String msg = new String(data,Charset.forName("UTF-8"));
-		//System.out.println("NioServer received: " + msg);
+		reader.handleRead();
 
-		// echo back the same message to the client
-		send(sc, data, 0, data.length);
+//		// get the socket channel for the client who sent something
+//		SocketChannel sc = (SocketChannel) key.channel();
+//
+//		ByteBuffer inBuffer = ByteBuffer.allocate(128);
+//		sc.read(inBuffer);
+//
+//		// process the received data
+//		byte[] data = new byte[inBuffer.position()];
+//		inBuffer.rewind();
+//		inBuffer.get(data,0,data.length);
+//		
+//		//String msg = new String(data,Charset.forName("UTF-8"));
+//		//System.out.println("NioServer received: " + msg);
+//
+//		// echo back the same message to the client
+//		send(sc, data, 0, data.length);
 	}
 
 	/**
@@ -147,15 +157,17 @@ public class NioServer {
 	private void handleWrite(SelectionKey key) throws IOException {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
+		
+		writer.handleWrite();
 
-		// get the socket channel for the client to whom we
-		// need to send something
-		SocketChannel sc = (SocketChannel) key.channel();
-
-		// get back the buffer that we must send
-		ByteBuffer buffer = (ByteBuffer) key.attachment();
-		sc.write(buffer);
-		key.interestOps(SelectionKey.OP_READ);
+//		// get the socket channel for the client to whom we
+//		// need to send something
+//		SocketChannel sc = (SocketChannel) key.channel();
+//
+//		// get back the buffer that we must send
+//		ByteBuffer buffer = (ByteBuffer) key.attachment();
+//		sc.write(buffer);
+//		key.interestOps(SelectionKey.OP_READ);
 	}
 
 	/**
