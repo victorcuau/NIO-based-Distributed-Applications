@@ -40,7 +40,7 @@ public class Reader {
 		else if (state == State.READ_PAYLOAD) {
 			sc.read(buffData);
 			if (buffData.remaining() == 0) {
-				processMsg(buffData.);
+				processMsg(new byte[size]);
 				state = State.READ_LENGTH;
 				//key.interestOps(SelectionKey.OP_WRITE);
 			}

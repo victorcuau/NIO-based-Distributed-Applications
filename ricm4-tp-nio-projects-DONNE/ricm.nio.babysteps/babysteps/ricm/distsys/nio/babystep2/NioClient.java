@@ -127,7 +127,8 @@ public class NioClient {
 		digest = md5(first);
 		
 		//send(first, 0, first.length);
-		writer.sendMsg(digest);
+		//writer.sendMsg(digest);
+		writer.sendMsg(first);
 	}
 
 	/**
