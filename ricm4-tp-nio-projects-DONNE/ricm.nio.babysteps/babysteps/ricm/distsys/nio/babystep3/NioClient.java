@@ -63,10 +63,6 @@ public class NioClient {
 		InetAddress addr;
 		addr = InetAddress.getByName(serverName);
 		sc.connect(new InetSocketAddress(addr, port));
-		
-		Channel channel = new Channel(sc, selector);
-		scKey.attach(channel);
-		System.out.println("HandleAccept : " + scKey.attachment());
 	}
 
 	/**
@@ -124,7 +120,11 @@ public class NioClient {
 		
 		//send(first, 0, first.length);
 		//writer.sendMsg(digest);
-		((Channel) scKey.attachment()).sendMsg(first);
+		
+		Channel channel = new Channel(sc, selector);
+		scKey.attach(channel);
+		
+		((Channel)(key.attachment())).sendMsg(first);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class NioClient {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
 		
-		((Channel) scKey.attachment()).handleRead();
+		((Channel)(key.attachment())).handleRead();
 
 //		// Let's read the message
 //		 inBuffer = ByteBuffer.allocate(128);
@@ -174,7 +174,7 @@ public class NioClient {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
 		
-		((Channel) scKey.attachment()).handleWrite();
+		((Channel)(key.attachment())).handleWrite();
 		
 //		// write the output buffer to the socket channel
 //		sc.write(outBuffer);

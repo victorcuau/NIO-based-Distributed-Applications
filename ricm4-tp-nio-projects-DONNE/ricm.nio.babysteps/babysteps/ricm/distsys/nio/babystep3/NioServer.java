@@ -99,11 +99,9 @@ public class NioServer {
 
 		// register the read interest for the new socket channel
 		// in order to know when there are bytes to read
-		sc.register(this.selector, SelectionKey.OP_READ);
-		
+		SelectionKey k = sc.register(this.selector, SelectionKey.OP_READ);
 		Channel channel = new Channel(sc, selector);
-		sscKey.attach(channel);
-		
+		k.attach(channel);
 	}
 
 	/**
@@ -125,7 +123,7 @@ public class NioServer {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
 		
-		((Channel) sscKey.attachment()).handleRead();
+		((Channel)(key.attachment())).handleRead();
 
 //		// get the socket channel for the client who sent something
 //		SocketChannel sc = (SocketChannel) key.channel();
@@ -154,7 +152,7 @@ public class NioServer {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
 		
-		((Channel) sscKey.attachment()).handleWrite();
+		((Channel)(key.attachment())).handleWrite();
 
 //		// get the socket channel for the client to whom we
 //		// need to send something
