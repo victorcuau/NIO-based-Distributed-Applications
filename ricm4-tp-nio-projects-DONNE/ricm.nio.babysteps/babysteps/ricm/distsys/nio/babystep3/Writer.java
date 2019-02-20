@@ -1,4 +1,4 @@
-package ricm.distsys.nio.babystep2;
+package ricm.distsys.nio.babystep3;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,6 +15,8 @@ public class Writer {
 	ByteBuffer buffData;
 	SocketChannel sc;
 	Selector selector;
+	
+	//ArrayList<ByteBuffer> messages;
 	
 	Writer(SocketChannel sc, Selector selector){
 		this.sc = sc;
@@ -46,6 +48,8 @@ public class Writer {
 		buffLen.rewind();
 		System.out.println("WRITER : Le message complet a été envoyé.");
 		System.out.println("WRITER : msg.length = " + msg.length);
+		// messages.add(buffData);
+
 		sc.register(selector, SelectionKey.OP_WRITE);
 	}
 	
