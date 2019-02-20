@@ -219,10 +219,6 @@ public class NioClient {
 			}
 		}
 		
-		for (int i=0 ; i<25 ; i++) { // Ca plante à partir de 2^25
-			msg = msg+msg;
-		}
-		
 		byte[] bytes = msg.getBytes(Charset.forName("UTF-8"));
 		NioClient nc;
 		nc = new NioClient(serverAddress, serverPort, bytes);
