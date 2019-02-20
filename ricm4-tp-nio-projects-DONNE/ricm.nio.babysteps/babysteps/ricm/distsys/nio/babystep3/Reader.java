@@ -51,16 +51,7 @@ public class Reader {
 		buffData.rewind();
 		buffData.get(msg, 0, size);
 		System.out.println("READER : Le message complet a été reçu.");
-		
-		// On double la taille du message à chaque échange.
-		String new_msg = new String(msg, Charset.forName("UTF-8"));
-		new_msg = new_msg + new_msg;
-		if(new_msg.length() < Math.pow(2, 24)) {
-			writer.sendMsg(new_msg.getBytes());
-		}
-		else {
-			System.out.println("READER : La taille maximale a été atteinte. On arrête d'envoyer des messages.");
-		}
+		writer.sendMsg(msg);
 	}
 	
 }

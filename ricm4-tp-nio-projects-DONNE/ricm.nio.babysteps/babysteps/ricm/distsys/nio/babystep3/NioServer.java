@@ -26,10 +26,6 @@ public class NioServer {
 
 	// Unblocking selector
 	private Selector selector;
-	
-	// WRITER & READER
-	Reader reader;
-	Writer writer;
 
 	/**
 	 * NIO server initialization
@@ -105,9 +101,9 @@ public class NioServer {
 		// in order to know when there are bytes to read
 		sc.register(this.selector, SelectionKey.OP_READ);
 		
-		// WRITER & READER
-		writer = new Writer(sc, selector);
-		reader = new Reader(sc, writer);
+		Channel channel = new Channel(sc, selector);
+		sscKey.attach(channel);
+		
 	}
 
 	/**
@@ -129,7 +125,7 @@ public class NioServer {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
 		
-		reader.handleRead();
+		((Channel) sscKey.attachment()).handleRead();
 
 //		// get the socket channel for the client who sent something
 //		SocketChannel sc = (SocketChannel) key.channel();
@@ -158,7 +154,7 @@ public class NioServer {
 		assert (sscKey != key);
 		assert (ssc != key.channel());
 		
-		writer.handleWrite();
+		((Channel) sscKey.attachment()).handleWrite();
 
 //		// get the socket channel for the client to whom we
 //		// need to send something

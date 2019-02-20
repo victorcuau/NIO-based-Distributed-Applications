@@ -35,10 +35,6 @@ public class NioClient {
 	byte[] first;
 	byte[] digest;
 	int nloops;
-	
-	//WRITER & READER
-	Reader reader;
-	Writer writer;
 
 	/**
 	 * NIO client initialization
@@ -68,9 +64,9 @@ public class NioClient {
 		addr = InetAddress.getByName(serverName);
 		sc.connect(new InetSocketAddress(addr, port));
 		
-		// WRITER & READER
-		writer = new Writer(sc, selector);
-		reader = new Reader(sc, writer);
+		Channel channel = new Channel(sc, selector);
+		scKey.attach(channel);
+		System.out.println("HandleAccept : " + scKey.attachment());
 	}
 
 	/**
@@ -128,7 +124,7 @@ public class NioClient {
 		
 		//send(first, 0, first.length);
 		//writer.sendMsg(digest);
-		writer.sendMsg(first);
+		((Channel) scKey.attachment()).sendMsg(first);
 	}
 
 	/**
@@ -140,7 +136,7 @@ public class NioClient {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
 		
-		reader.handleRead();
+		((Channel) scKey.attachment()).handleRead();
 
 //		// Let's read the message
 //		 inBuffer = ByteBuffer.allocate(128);
@@ -178,7 +174,7 @@ public class NioClient {
 		assert (this.scKey == key);
 		assert (sc == key.channel());
 		
-		writer.handleWrite();
+		((Channel) scKey.attachment()).handleWrite();
 		
 //		// write the output buffer to the socket channel
 //		sc.write(outBuffer);
@@ -217,10 +213,6 @@ public class NioClient {
 			} else if (arg.equals("-a")) {
 				serverAddress = args[++i];
 			}
-		}
-		
-		for (int i=0 ; i<25 ; i++) { // Ca plante à partir de 2^25
-			msg = msg+msg;
 		}
 		
 		byte[] bytes = msg.getBytes(Charset.forName("UTF-8"));
