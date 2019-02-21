@@ -2,20 +2,17 @@ package ricm.distsys.nio.babystep3;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 public class Channel {
-	SocketChannel sc;
-	Selector selector;
 	Reader reader;
 	Writer writer;
 	
-	Channel(SocketChannel sc, Selector selector){
-		this.sc = sc;
-		this.selector = selector;
-		this.writer = new Writer(sc, selector);
-		this.reader = new Reader(sc, writer);
+	Channel(SelectionKey key){
+		this.writer = new Writer(key);
+		this.reader = new Reader(key, writer);
 	}
 	
 	public void handleRead() throws IOException {

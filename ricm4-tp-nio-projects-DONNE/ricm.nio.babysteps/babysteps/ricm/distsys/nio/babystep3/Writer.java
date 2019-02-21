@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 public class Writer {
@@ -14,13 +13,13 @@ public class Writer {
 	ByteBuffer buffLen;
 	ByteBuffer buffData;
 	SocketChannel sc;
-	Selector selector;
+	SelectionKey key;
 	
 	//ArrayList<ByteBuffer> messages;
 	
-	Writer(SocketChannel sc, Selector selector){
-		this.sc = sc;
-		this.selector = selector;
+	Writer(SelectionKey key){
+		this.key = key;
+		this.sc = (SocketChannel)(key.channel());
 		buffLen = ByteBuffer.allocate(4);
 		state = State.WRITE_LENGTH;
 	}
@@ -36,7 +35,7 @@ public class Writer {
 			sc.write(buffData);
 			if (buffData.remaining() == 0) {
 				state = State.WRITE_LENGTH;
-				sc.register(selector, SelectionKey.OP_READ);
+				key.interestOps(SelectionKey.OP_READ);
 			}
 		}
 	}
@@ -50,7 +49,7 @@ public class Writer {
 		System.out.println("WRITER : msg.length = " + msg.length);
 		// messages.add(buffData);
 
-		sc.register(selector, SelectionKey.OP_WRITE);
+		key.interestOps(SelectionKey.OP_WRITE);
 	}
 	
 }

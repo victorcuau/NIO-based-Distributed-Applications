@@ -100,7 +100,7 @@ public class NioServer {
 		// register the read interest for the new socket channel
 		// in order to know when there are bytes to read
 		SelectionKey k = sc.register(this.selector, SelectionKey.OP_READ);
-		Channel channel = new Channel(sc, selector);
+		Channel channel = new Channel(k);
 		k.attach(channel);
 	}
 

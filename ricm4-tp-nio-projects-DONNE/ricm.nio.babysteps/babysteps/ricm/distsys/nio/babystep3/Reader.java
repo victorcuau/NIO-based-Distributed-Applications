@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 
 public class Reader {
 	
@@ -14,13 +13,15 @@ public class Reader {
 	ByteBuffer buffLen;
 	ByteBuffer buffData;
 	SocketChannel sc;
+	SelectionKey key;
 	
 	int size;
 	
 	Writer writer;
 	
-	Reader(SocketChannel sc, Writer writer){
-		this.sc = sc;
+	Reader(SelectionKey key, Writer writer){
+		this.key = key;
+		this.sc = (SocketChannel)(key.channel());
 		this.writer = writer;
 		buffLen = ByteBuffer.allocate(4);
 		state = State.READ_LENGTH;

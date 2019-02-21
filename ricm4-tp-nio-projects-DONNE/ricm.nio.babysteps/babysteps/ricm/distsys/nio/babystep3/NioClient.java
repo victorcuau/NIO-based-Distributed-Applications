@@ -121,8 +121,8 @@ public class NioClient {
 		//send(first, 0, first.length);
 		//writer.sendMsg(digest);
 		
-		Channel channel = new Channel(sc, selector);
-		scKey.attach(channel);
+		Channel channel = new Channel(key);
+		key.attach(channel);
 		
 		((Channel)(key.attachment())).sendMsg(first);
 	}
