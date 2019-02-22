@@ -4,6 +4,8 @@ import ricm.channels.IChannel;
 import ricm.channels.IChannelListener;
 
 public class Channel implements IChannel {
+	
+	// Le même que dans babystep3 ??
 
 	public void setListener(IChannelListener l) {
 		
@@ -22,6 +24,7 @@ public class Channel implements IChannel {
 	}
 
 	public boolean closed() {
+		
 		return false;
 	}
 
