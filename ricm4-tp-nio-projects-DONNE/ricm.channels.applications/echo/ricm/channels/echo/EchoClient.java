@@ -20,7 +20,7 @@ public class EchoClient implements IBrokerListener, IChannelListener {
 	@Override
 	public void connected(IChannel c) {
 		c.setListener(this);
-		byte[] bytes = "Hello".getBytes(Charset.forName("UTF-8"));
+		byte[] bytes = "Help me... I'm looooooooost...".getBytes(Charset.forName("UTF-8"));
 		c.send(bytes);
 	}
 
