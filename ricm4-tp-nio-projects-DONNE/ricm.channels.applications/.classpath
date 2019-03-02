@@ -5,5 +5,6 @@
 	<classpathentry kind="src" path="fileserver"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ricm.channels"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ricm.channels.impl.local"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ricm.channels.nio"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

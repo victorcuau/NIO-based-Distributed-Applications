@@ -9,19 +9,15 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.security.MessageDigest;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import ricm.channels.IBroker;
 import ricm.channels.IBrokerListener;
 import ricm.channels.IChannelListener;
-import ricm.channels.nio.Reader.State;
 
 public class Broker implements IBroker {
 	
-	IBrokerListener l;
+	public IBrokerListener l;
 	IChannelListener lc;
 	int port;
 	String host;
@@ -29,7 +25,7 @@ public class Broker implements IBroker {
 	
 	ServerSocketChannel ssc;
 	
-	ByteBuffer buffLen;
+	ByteBuffer buffLen = ByteBuffer.allocate(4);
 	ByteBuffer buffData;
 	int size;
 	
@@ -38,10 +34,8 @@ public class Broker implements IBroker {
 	byte[] digest;
 	int nloops;
 	
-	public Broker(Selector selector, ServerSocketChannel ssc, SelectionKey scKey) {
-		this.selector = selector;
-		this.ssc = ssc;
-		buffLen = ByteBuffer.allocate(4);
+	public Broker() {
+
 	}
 
 	public void setListener(IBrokerListener l) {
@@ -154,35 +148,11 @@ public class Broker implements IBroker {
 		SocketChannel sc = (SocketChannel)(key.channel());
 		sc.finishConnect();
 		key.interestOps(SelectionKey.OP_READ);
-
-		// when connected, send a message to the server
-		digest = md5(first);
-		
-		//send(first, 0, first.length);
-		//writer.sendMsg(digest);
 		
 		Channel channel = new Channel(key);
 		channel.setListener(lc);
 		key.attach(channel);
 		l.connected(channel);
 	}
-	
-	public static byte[] md5(byte[] bytes) throws IOException {
-		byte[] digest = null;
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(bytes, 0, bytes.length);
-			digest = md.digest();
-		} catch (Exception ex) {
-			throw new IOException(ex);
-		}
-		return digest;
-	}
-
-	//Les 4 handle
-			// 
-			// handle read et write depuis reader et writer
-	//createchannel
-	//Setlistener
 
 }
