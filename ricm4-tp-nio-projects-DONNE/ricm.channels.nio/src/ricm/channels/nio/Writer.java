@@ -40,7 +40,7 @@ public class Writer {
 		}
 	}
 	
-	public void sendMsg(byte[] msg) throws ClosedChannelException {
+	public void sendMsg(byte[] msg) {
 		buffData = ByteBuffer.wrap(msg, 0, msg.length);
 		buffLen.rewind();
 		buffLen.putInt(msg.length);

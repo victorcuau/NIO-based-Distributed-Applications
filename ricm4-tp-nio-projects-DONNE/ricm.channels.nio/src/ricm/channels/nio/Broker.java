@@ -9,40 +9,73 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.security.MessageDigest;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import ricm.channels.IBroker;
 import ricm.channels.IBrokerListener;
+import ricm.channels.IChannelListener;
 import ricm.channels.nio.Reader.State;
 
 public class Broker implements IBroker {
 	
-	enum State {READ_LENGTH, READ_PAYLOAD, WRITE_LENGTH, WRITE_PAYLOAD};
-	State state;
-	private Selector selector;
-	private SocketChannel sc;
-	private ServerSocketChannel ssc;
-	private SelectionKey scKey;
+	IBrokerListener l;
+	IChannelListener lc;
+	int port;
+	String host;
+	Selector selector;
+	
+	ServerSocketChannel ssc;
+	
 	ByteBuffer buffLen;
 	ByteBuffer buffData;
 	int size;
 	
-	public Broker() {
-		
+	// The message to send to the server
+	byte[] first;
+	byte[] digest;
+	int nloops;
+	
+	public Broker(Selector selector, ServerSocketChannel ssc, SelectionKey scKey) {
+		this.selector = selector;
+		this.ssc = ssc;
+		buffLen = ByteBuffer.allocate(4);
 	}
 
 	public void setListener(IBrokerListener l) {
-		
+		this.l = l;
 	}
 
-	// Préparer les choses pour pouvoir recevoir l'événement
 	public boolean connect(String host, int port) {
-		
+		try {
+			// create a new selector
+			selector = SelectorProvider.provider().openSelector();
 
-		return false;
+			// create a new non-blocking server socket channel
+			SocketChannel sc = SocketChannel.open();
+			sc = SocketChannel.open();
+			sc.configureBlocking(false);
+
+			// register an connect interested in order to get a
+			// connect event, when the connection will be established
+			sc.register(selector, SelectionKey.OP_CONNECT);
+
+			// request a connection to the given server and port
+			InetAddress addr;
+			addr = InetAddress.getByName(host);
+			sc.connect(new InetSocketAddress(addr, port));
+		}
+		catch (IOException e) {
+			l.refused("localhost", port);
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
-	//Préparer les choses pour pouvoir recevoir l'événement
 	public boolean accept(int port) {
 		try {
 				// create a new selector
@@ -59,14 +92,16 @@ public class Broker implements IBroker {
 					ssc.socket().bind(isa);
 
 					// be notified when connection requests arrive
-					scKey = ssc.register(selector, SelectionKey.OP_ACCEPT);
+					ssc.register(selector, SelectionKey.OP_ACCEPT);
 
 		}
 		catch (IOException e) {
-		
+			l.refused("localhost", port);
+			e.printStackTrace();
+			return false;
 		}
 		
-		return false;
+		return true;
 	}
 	
 	
@@ -87,10 +122,10 @@ public class Broker implements IBroker {
 						handleAccept(key);
 					
 					if (key.isReadable())
-						handleRead(key);
+						((Channel)(key.attachment())).handleRead();
 					
 					if (key.isWritable())
-						handleWrite(key);
+						((Channel)(key.attachment())).handleWrite();
 					
 					if (key.isConnectable())
 						handleConnect(key);
@@ -100,48 +135,48 @@ public class Broker implements IBroker {
 	}
 	
 	public void handleAccept(SelectionKey key) throws IOException {
-		
+		SocketChannel sc;
+
+		// do the actual accept on the server-socket channel
+		sc = ssc.accept();
+		sc.configureBlocking(false);
+
+		// register the read interest for the new socket channel
+		// in order to know when there are bytes to read
+		SelectionKey k = sc.register(this.selector, SelectionKey.OP_READ);
+		Channel channel = new Channel(k);
+		channel.setListener(lc);
+		k.attach(channel);
+		l.accepted(channel);
 	}
 	
 	public void handleConnect(SelectionKey key) throws IOException {
+		SocketChannel sc = (SocketChannel)(key.channel());
+		sc.finishConnect();
+		key.interestOps(SelectionKey.OP_READ);
+
+		// when connected, send a message to the server
+		digest = md5(first);
 		
+		//send(first, 0, first.length);
+		//writer.sendMsg(digest);
+		
+		Channel channel = new Channel(key);
+		channel.setListener(lc);
+		key.attach(channel);
+		l.connected(channel);
 	}
 	
-	public void handleRead(SelectionKey key) throws IOException {
-		if (state == State.READ_LENGTH) {
-			sc.read(buffLen);
-			if (buffLen.remaining() == 0) {
-				buffLen.rewind();
-				size = buffLen.getInt();
-				System.out.println("READER : size = " + size);
-				buffData = ByteBuffer.allocate(size);
-				buffLen.rewind();
-				state = State.READ_PAYLOAD;
-			}
+	public static byte[] md5(byte[] bytes) throws IOException {
+		byte[] digest = null;
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(bytes, 0, bytes.length);
+			digest = md.digest();
+		} catch (Exception ex) {
+			throw new IOException(ex);
 		}
-		else if (state == State.READ_PAYLOAD) {
-			sc.read(buffData);
-			if (buffData.remaining() == 0) {
-				processMsg(new byte[size]);
-				state = State.READ_LENGTH;
-			}
-		}
-	}
-	
-	public void handleWrite(SelectionKey key) throws IOException {
-		if (state == State.WRITE_LENGTH) {
-			sc.write(buffLen);
-			if (buffLen.remaining() == 0) {
-				state = State.WRITE_PAYLOAD;
-			}
-		}
-		else if (state == State.WRITE_PAYLOAD) {
-			sc.write(buffData);
-			if (buffData.remaining() == 0) {
-				state = State.WRITE_LENGTH;
-				key.interestOps(SelectionKey.OP_READ);
-			}
-		}
+		return digest;
 	}
 
 	//Les 4 handle

@@ -6,6 +6,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
+import ricm.channels.IChannelListener;
+
 public class Reader {
 	
 	enum State {READ_LENGTH, READ_PAYLOAD};
@@ -14,6 +16,7 @@ public class Reader {
 	ByteBuffer buffData;
 	SocketChannel sc;
 	SelectionKey key;
+	IChannelListener l;
 	
 	int size;
 	
@@ -53,6 +56,7 @@ public class Reader {
 		buffData.get(msg, 0, size);
 		System.out.println("READER : Le message complet a été reçu.");
 		writer.sendMsg(msg);
+		l.received((Channel)key.attachment(), msg);
 	}
 	
 }
