@@ -115,7 +115,8 @@ public class FileServer implements IBrokerListener, IChannelListener {
 			} finally {
 				dos.close();
 				byte[] bytes = os.toByteArray();
-				channel.send(bytes);
+				//channel.send(bytes);
+				channel.send(bytes,0,bytes.length);
 			}
 		} catch (Exception ex) {
 			panic("unexpected exception", ex);

@@ -2,13 +2,14 @@ package ricm.channels.nio;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 
 import ricm.channels.IChannel;
 import ricm.channels.IChannelListener;
 
 public class Channel implements IChannel {
+	
+	static int chunk = 10;
 	
 	Reader reader;
 	Writer writer;
@@ -36,9 +37,28 @@ public class Channel implements IChannel {
 	}
 
 	public void send(byte[] bytes, int offset, int count) throws IllegalStateException {
-		byte[] tmp =new byte[count];
-		System.arraycopy(bytes, offset, tmp, 0, count);
-		writer.sendMsg(tmp);
+//		byte[] tmp = new byte[count];
+//		System.arraycopy(bytes, offset, tmp, 0, count);
+//		writer.sendMsg(tmp);
+		
+		byte[] tmp = new byte[chunk];
+		
+		if (count < chunk) {
+			System.arraycopy(bytes, offset, tmp, 0, count);
+			writer.sendMsg(tmp);
+		}
+		else {
+			int reste = count;
+			int i = 0; // BUG ICI ?
+			while (i*chunk < count) {
+				System.arraycopy(bytes, offset, tmp, 0, Math.min(chunk, reste));
+				writer.sendMsg(tmp);
+				i++;
+				reste = reste - Math.min(chunk, reste);
+				System.out.println("Reste " + reste + " à envoyer.");
+			}
+		}
+		
 	}
 	
 	public void send(byte[] msg) {
