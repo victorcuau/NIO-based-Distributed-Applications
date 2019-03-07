@@ -80,7 +80,21 @@ public class FileDownloader implements IBrokerListener, IChannelListener {
 				System.out.println("Download " + nbytes + " bytes");
 				byte[] bytes = new byte[nbytes];
 				//dis.readFully(bytes);
-				dis.read(bytes);
+				
+				//dis.read(bytes);
+				
+				int nread = 0;
+				int num = 0;
+				while (nread < nbytes) {
+					num = dis.read(bytes, nread, nbytes-nread);
+					if (num == -1) {
+						System.out.println("Download error.");
+						return;
+					}
+					nread += num;
+				}
+				
+				
 				if (isText) {
 					String txt = new String(bytes, "UTF-8");
 					System.out.println(txt);

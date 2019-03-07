@@ -12,7 +12,7 @@ public class NioMainClient {
 		bc = new Broker();
 		fd = new FileDownloader(bc);
 		bc.setListener(bc.l);
-		fd.download("localhost", 1234, "ricm/channels/echo/EchoClient.java", true);
+		fd.download("localhost", 1234, "echo/ricm/channels/echo/EchoClient.java", true);
 		bc.loop();
 	}
 }
